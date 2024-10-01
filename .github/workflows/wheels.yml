@@ -214,7 +214,7 @@ jobs:
           # Build it separately.
 
           touch requirements_grpcio.txt
-          cat homeassistant/package_constraints.txt | grep 'grpcio==' >> requirements_grpcio.txt
+          cat homeassistant/package_constraints.txt | grep 'grpcio>=' >> requirements_grpcio.txt
 
       - name: Build wheels (old cython)
         uses: home-assistant/wheels@2024.07.1

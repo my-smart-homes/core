@@ -1,0 +1,8 @@
+{
+    "config": {
+        "abort": {
+            "cannot_connect": "Failed to connect"
+        },
+        "step": {}
+    }
+}

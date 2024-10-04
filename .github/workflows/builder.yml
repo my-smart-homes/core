@@ -18,7 +18,7 @@ env:
 jobs:
   init:
     name: Initialize build
-    if: github.repository_owner == 'home-assistant'
+    # if: github.repository_owner == 'home-assistant'
     runs-on: ubuntu-latest
     outputs:
       architectures: ${{ steps.info.outputs.architectures }}
@@ -77,7 +77,7 @@ jobs:
 
   build_base:
     name: Build ${{ matrix.arch }} base core image
-    if: github.repository_owner == 'home-assistant'
+    # if: github.repository_owner == 'home-assistant'
     needs: init
     runs-on: ubuntu-latest
     permissions:
@@ -97,7 +97,7 @@ jobs:
         uses: dawidd6/action-download-artifact@v6
         with:
           github_token: ${{secrets.GITHUB_TOKEN}}
-          repo: home-assistant/frontend
+          repo: my-smart-homes/frontend-ha
           branch: dev
           workflow: nightly.yaml
           workflow_conclusion: success
@@ -131,17 +131,17 @@ jobs:
           uv pip install .
           python3 script/version_bump.py nightly --set-nightly-version "${{ needs.init.outputs.version }}"
 
-          if [[ "$(ls home_assistant_frontend*.whl)" =~ ^home_assistant_frontend-(.*)-py3-none-any.whl$ ]]; then
+          if [[ "$(ls my_smart_homes_frontend*.whl)" =~ ^my_smart_homes_frontend-(.*)-py3-none-any.whl$ ]]; then
             echo "Found frontend wheel, setting version to: ${BASH_REMATCH[1]}"
             frontend_version="${BASH_REMATCH[1]}" yq \
               --inplace e -o json \
-              '.requirements = ["home-assistant-frontend=="+env(frontend_version)]' \
+              '.requirements = ["my_smart_homes_frontend=="+env(frontend_version)]' \
               homeassistant/components/frontend/manifest.json
 
-            sed -i "s|home-assistant-frontend==.*|home-assistant-frontend==${BASH_REMATCH[1]}|" \
+            sed -i "s|my_smart_homes_frontend==.*|my_smart_homes_frontend==${BASH_REMATCH[1]}|" \
               homeassistant/package_constraints.txt
 
-            sed -i "s|home-assistant-frontend==.*||" requirements_all.txt
+            sed -i "s|my_smart_homes_frontend==.*||" requirements_all.txt
           fi
 
           if [[ "$(ls home_assistant_intents*.whl)" =~ ^home_assistant_intents-(.*)-py3-none-any.whl$ ]]; then
@@ -208,7 +208,7 @@ jobs:
 
   build_machine:
     name: Build ${{ matrix.machine }} machine core image
-    if: github.repository_owner == 'home-assistant'
+    # if: github.repository_owner == 'home-assistant'
     needs: ["init", "build_base"]
     runs-on: ubuntu-latest
     permissions:
@@ -219,24 +219,24 @@ jobs:
       matrix:
         machine:
           - generic-x86-64
-          - intel-nuc
-          - khadas-vim3
-          - odroid-c2
-          - odroid-c4
-          - odroid-m1
-          - odroid-n2
-          - odroid-xu
+          # - intel-nuc
+          # - khadas-vim3
+          # - odroid-c2
+          # - odroid-c4
+          # - odroid-m1
+          # - odroid-n2
+          # - odroid-xu
           - qemuarm
           - qemuarm-64
           - qemux86
           - qemux86-64
-          - raspberrypi
-          - raspberrypi2
-          - raspberrypi3
-          - raspberrypi3-64
-          - raspberrypi4
-          - raspberrypi4-64
-          - raspberrypi5-64
+          # - raspberrypi
+          # - raspberrypi2
+          # - raspberrypi3
+          # - raspberrypi3-64
+          # - raspberrypi4
+          # - raspberrypi4-64
+          # - raspberrypi5-64
           - tinker
           - yellow
           - green
@@ -274,7 +274,7 @@ jobs:
   publish_ha:
     name: Publish version files
     environment: ${{ needs.init.outputs.channel }}
-    if: github.repository_owner == 'home-assistant'
+    # if: github.repository_owner == 'home-assistant'
     needs: ["init", "build_machine"]
     runs-on: ubuntu-latest
     steps:
@@ -308,7 +308,7 @@ jobs:
   publish_container:
     name: Publish meta container for ${{ matrix.registry }}
     environment: ${{ needs.init.outputs.channel }}
-    if: github.repository_owner == 'home-assistant'
+    # if: github.repository_owner == 'home-assistant'
     needs: ["init", "build_base"]
     runs-on: ubuntu-latest
     permissions:
@@ -318,7 +318,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        registry: ["ghcr.io/home-assistant", "docker.io/homeassistant"]
+        # registry: ["ghcr.io/my-smart-homes", "docker.io/homeassistant"]
+        registry: ["ghcr.io/my-smart-homes"]
     steps:
       - name: Checkout the repository
         uses: actions/checkout@v4.2.0
@@ -328,12 +329,12 @@ jobs:
         with:
           cosign-release: "v2.2.3"
 
-      - name: Login to DockerHub
-        if: matrix.registry == 'docker.io/homeassistant'
-        uses: docker/login-action@v3.3.0
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      # - name: Login to DockerHub
+      #   if: matrix.registry == 'docker.io/homeassistant'
+      #   uses: docker/login-action@v3.3.0
+      #   with:
+      #     username: ${{ secrets.DOCKERHUB_USERNAME }}
+      #     password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Login to GitHub Container Registry
         if: matrix.registry == 'ghcr.io/home-assistant'
@@ -392,14 +393,14 @@ jobs:
             fi
           }
 
-          function push_dockerhub() {
-            local image=${1}
-            local tag=${2}
+          # function push_dockerhub() {
+          #   local image=${1}
+          #   local tag=${2}
 
-            docker tag "ghcr.io/home-assistant/${image}:${tag}" "docker.io/homeassistant/${image}:${tag}"
-            docker push "docker.io/homeassistant/${image}:${tag}"
-            cosign sign --yes "docker.io/homeassistant/${image}:${tag}"
-          }
+          #   docker tag "ghcr.io/home-assistant/${image}:${tag}" "docker.io/homeassistant/${image}:${tag}"
+          #   docker push "docker.io/homeassistant/${image}:${tag}"
+          #   cosign sign --yes "docker.io/homeassistant/${image}:${tag}"
+          # }
 
           # Pull images from github container registry and verify signature
           docker pull "ghcr.io/home-assistant/amd64-homeassistant:${{ needs.init.outputs.version }}"
@@ -448,7 +449,7 @@ jobs:
     environment: ${{ needs.init.outputs.channel }}
     needs: ["init", "build_base"]
     runs-on: ubuntu-latest
-    if: github.repository_owner == 'home-assistant' && needs.init.outputs.publish == 'true'
+    if: needs.init.outputs.publish == 'true'
     steps:
       - name: Checkout the repository
         uses: actions/checkout@v4.2.0
@@ -484,55 +485,55 @@ jobs:
 
           twine upload dist/* --skip-existing
 
-  hassfest-image:
-    name: Build and test hassfest image
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-      attestations: write
-      id-token: write
-    needs: ["init"]
-    if: github.repository_owner == 'home-assistant'
-    env:
-      HASSFEST_IMAGE_NAME: ghcr.io/home-assistant/hassfest
-      HASSFEST_IMAGE_TAG: ghcr.io/home-assistant/hassfest:${{ needs.init.outputs.version }}
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@d632683dd7b4114ad314bca15554477dd762a938 # v4.2.0
+  # hassfest-image:
+  #   name: Build and test hassfest image
+  #   runs-on: ubuntu-latest
+  #   permissions:
+  #     contents: read
+  #     packages: write
+  #     attestations: write
+  #     id-token: write
+  #   needs: ["init"]
+  #   # if: github.repository_owner == 'home-assistant'
+  #   env:
+  #     HASSFEST_IMAGE_NAME: ghcr.io/home-assistant/hassfest
+  #     HASSFEST_IMAGE_TAG: ghcr.io/home-assistant/hassfest:${{ needs.init.outputs.version }}
+  #   steps:
+  #     - name: Checkout repository
+  #       uses: actions/checkout@d632683dd7b4114ad314bca15554477dd762a938 # v4.2.0
 
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3.3.0
-        with:
-          registry: ghcr.io
-          username: ${{ github.repository_owner }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+  #     - name: Login to GitHub Container Registry
+  #       uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3.3.0
+  #       with:
+  #         registry: ghcr.io
+  #         username: ${{ github.repository_owner }}
+  #         password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build Docker image
-        uses: docker/build-push-action@4f58ea79222b3b9dc2c8bbdd6debcef730109a75 # v6.9.0
-        with:
-          context: . # So action will not pull the repository again
-          file: ./script/hassfest/docker/Dockerfile
-          load: true
-          tags: ${{ env.HASSFEST_IMAGE_TAG }}
+  #     - name: Build Docker image
+  #       uses: docker/build-push-action@4f58ea79222b3b9dc2c8bbdd6debcef730109a75 # v6.9.0
+  #       with:
+  #         context: . # So action will not pull the repository again
+  #         file: ./script/hassfest/docker/Dockerfile
+  #         load: true
+  #         tags: ${{ env.HASSFEST_IMAGE_TAG }}
 
-      - name: Run hassfest against core
-        run: docker run --rm -v ${{ github.workspace }}/homeassistant:/github/workspace/homeassistant ${{ env.HASSFEST_IMAGE_TAG }} --core-integrations-path=/github/workspace/homeassistant/components
+  #     - name: Run hassfest against core
+  #       run: docker run --rm -v ${{ github.workspace }}/homeassistant:/github/workspace/homeassistant ${{ env.HASSFEST_IMAGE_TAG }} --core-integrations-path=/github/workspace/homeassistant/components
 
-      - name: Push Docker image
-        if: needs.init.outputs.channel != 'dev' && needs.init.outputs.publish == 'true'
-        id: push
-        uses: docker/build-push-action@4f58ea79222b3b9dc2c8bbdd6debcef730109a75 # v6.9.0
-        with:
-          context: . # So action will not pull the repository again
-          file: ./script/hassfest/docker/Dockerfile
-          push: true
-          tags: ${{ env.HASSFEST_IMAGE_TAG }},${{ env.HASSFEST_IMAGE_NAME }}:latest
+  #     - name: Push Docker image
+  #       if: needs.init.outputs.channel != 'dev' && needs.init.outputs.publish == 'true'
+  #       id: push
+  #       uses: docker/build-push-action@4f58ea79222b3b9dc2c8bbdd6debcef730109a75 # v6.9.0
+  #       with:
+  #         context: . # So action will not pull the repository again
+  #         file: ./script/hassfest/docker/Dockerfile
+  #         push: true
+  #         tags: ${{ env.HASSFEST_IMAGE_TAG }},${{ env.HASSFEST_IMAGE_NAME }}:latest
 
-      - name: Generate artifact attestation
-        if: needs.init.outputs.channel != 'dev' && needs.init.outputs.publish == 'true'
-        uses: actions/attest-build-provenance@1c608d11d69870c2092266b3f9a6f3abbf17002c # v1.4.3
-        with:
-          subject-name: ${{ env.HASSFEST_IMAGE_NAME }}
-          subject-digest: ${{ steps.push.outputs.digest }}
-          push-to-registry: true
+  #     - name: Generate artifact attestation
+  #       if: needs.init.outputs.channel != 'dev' && needs.init.outputs.publish == 'true'
+  #       uses: actions/attest-build-provenance@1c608d11d69870c2092266b3f9a6f3abbf17002c # v1.4.3
+  #       with:
+  #         subject-name: ${{ env.HASSFEST_IMAGE_NAME }}
+  #         subject-digest: ${{ steps.push.outputs.digest }}
+  #         push-to-registry: true

@@ -287,7 +287,7 @@ jobs:
           token: ${{ secrets.GIT_TOKEN }}
 
       - name: Update version file
-        uses: home-assistant/actions/helpers/version-push@master
+        uses: my-smart-homes/actions/helpers/version-push@master
         with:
           key: "homeassistant[]"
           key-description: "Home Assistant Core"
@@ -296,7 +296,7 @@ jobs:
 
       - name: Update version file (stable -> beta)
         if: needs.init.outputs.channel == 'stable'
-        uses: home-assistant/actions/helpers/version-push@master
+        uses: my-smart-homes/actions/helpers/version-push@master
         with:
           key: "homeassistant[]"
           key-description: "Home Assistant Core"

@@ -202,7 +202,6 @@ jobs:
           args: |
             $BUILD_ARGS \
             --${{ matrix.arch }} \
-            --cosign \
             --target /data \
             --generic ${{ needs.init.outputs.version }}
 
@@ -268,7 +267,6 @@ jobs:
           args: |
             $BUILD_ARGS \
             --target /data/machine \
-            --cosign \
             --machine "${{ needs.init.outputs.version }}=${{ matrix.machine }}"
 
   publish_ha:
@@ -324,10 +322,10 @@ jobs:
       - name: Checkout the repository
         uses: actions/checkout@v4.2.0
 
-      - name: Install Cosign
-        uses: sigstore/cosign-installer@v3.6.0
-        with:
-          cosign-release: "v2.2.3"
+      # - name: Install Cosign
+      #   uses: sigstore/cosign-installer@v3.6.0
+      #   with:
+      #     cosign-release: "v2.2.3"
 
       # - name: Login to DockerHub
       #   if: matrix.registry == 'docker.io/homeassistant'

@@ -1,0 +1,19 @@
+{
+    "config": {
+        "error": {
+            "cannot_connect": "Failed to connect",
+            "invalid_url": "Invalid URL",
+            "invalid_url_schema": "Invalid URL scheme.\nThe URL should start with `http://` or `https://`."
+        },
+        "step": {
+            "host": {
+                "data": {
+                    "host": "URL"
+                },
+                "data_description": {
+                    "host": "The URL of your go2rtc instance."
+                }
+            }
+        }
+    }
+}

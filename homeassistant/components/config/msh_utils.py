@@ -2,6 +2,7 @@
 
 import base64
 from http import HTTPStatus
+import os
 from typing import Any
 
 import aiohttp
@@ -86,3 +87,68 @@ async def sync_password_with_firebase(
             pass
         else:
             pass
+
+
+def write_key_value_to_config_file(key: str, value: str) -> None:
+    """Write a value to a file based on the key in the relative config directory.
+
+    Args:
+        key (str): Logical name of the file (e.g., 'server_id' becomes 'data_server_id.txt').
+        value (str): The value to write into the file.
+
+    Raises:
+        ValueError: If the key is invalid or empty.
+        Exception: For any other file writing errors.
+
+    """
+    if not key.strip():
+        raise ValueError("Key cannot be empty.")
+
+    # Convert key to filename
+    filename = f"data_{key.strip()}.txt"
+
+    # Dynamically calculate the base path relative to this script
+    base_path = os.path.abspath(
+        os.path.join(os.path.dirname(__file__), "../../../config")
+    )
+    file_path = os.path.join(base_path, filename)
+
+    try:
+        # Ensure the base directory exists
+        os.makedirs(base_path, exist_ok=True)
+
+        # Write the value to the file
+        with open(file_path, "w", encoding="utf-8") as file:
+            file.write(value.strip())
+    except OSError:
+        pass
+
+
+def retrieve_value_from_config_file(key: str) -> str:
+    """Retrieve a value from a file based on the key in the relative config directory.
+
+    Args:
+        key (str): Logical name of the file (e.g., 'server_id' for 'data_server_id.txt').
+
+    Returns:
+        str: The content of the file, or an empty string if the file doesn't exist or an error occurs.
+
+    """
+    if not key.strip():
+        raise ValueError("Key cannot be empty.")
+
+    # Convert key to filename
+    filename = f"data_{key.strip()}.txt"
+
+    # Dynamically calculate the base path relative to this script
+    base_path = os.path.abspath(
+        os.path.join(os.path.dirname(__file__), "../../../config")
+    )
+    file_path = os.path.join(base_path, filename)
+
+    try:
+        # Read and return the value from the file
+        with open(file_path, encoding="utf-8") as file:
+            return file.read().strip()
+    except FileNotFoundError:
+        return ""

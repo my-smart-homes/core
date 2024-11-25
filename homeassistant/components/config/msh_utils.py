@@ -12,6 +12,8 @@ from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 
 from . import config_core_secrets as ccs
 
+SERVER_ID = "server_id"
+
 
 async def verify_secret_key(
     secret_key: str, name: str, email: str, password: str, internal_url: str

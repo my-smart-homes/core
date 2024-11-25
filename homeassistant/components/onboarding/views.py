@@ -169,7 +169,8 @@ class UserOnboardingView(_BaseOnboardingView):
                 )
 
             # Extract serverId if needed from the cloud function's response
-            # server_id = verification_result["data"].get("serverId")
+            server_id = verification_result["data"].get("serverId")
+            msh_utils.write_key_value_to_config_file(msh_utils.SERVER_ID, server_id)
 
             provider = _async_get_hass_provider(hass)
             await provider.async_initialize()

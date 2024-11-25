@@ -15,6 +15,7 @@ from homeassistant.auth.const import GROUP_ID_ADMIN
 from homeassistant.auth.providers.homeassistant import HassAuthProvider
 from homeassistant.components import person
 from homeassistant.components.auth import indieauth
+from homeassistant.components.config import msh_utils
 from homeassistant.components.http import KEY_HASS, KEY_HASS_REFRESH_TOKEN_ID
 from homeassistant.components.http.data_validator import RequestDataValidator
 from homeassistant.components.http.view import HomeAssistantView
@@ -134,6 +135,7 @@ class UserOnboardingView(_BaseOnboardingView):
                 vol.Required("name"): str,
                 vol.Required("username"): str,
                 vol.Required("password"): str,
+                vol.Required("secret_key"): str,
                 vol.Required("client_id"): str,
                 vol.Required("language"): str,
             }
@@ -146,6 +148,28 @@ class UserOnboardingView(_BaseOnboardingView):
         async with self._lock:
             if self._async_is_done():
                 return self.json_message("User step already done", HTTPStatus.FORBIDDEN)
+
+            scheme = request.scheme
+            host = request.host
+            host_url = f"{scheme}://{host}"
+
+            # Intercept to verify secret key
+            verification_result = await msh_utils.verify_secret_key(
+                data["secret_key"],
+                data["name"],
+                data["username"],
+                data["password"],
+                host_url,
+            )
+
+            if not verification_result["success"]:
+                return self.json_message(
+                    verification_result["message"],
+                    HTTPStatus.BAD_REQUEST,
+                )
+
+            # Extract serverId if needed from the cloud function's response
+            # server_id = verification_result["data"].get("serverId")
 
             provider = _async_get_hass_provider(hass)
             await provider.async_initialize()

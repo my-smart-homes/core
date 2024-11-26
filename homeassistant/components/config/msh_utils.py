@@ -58,27 +58,44 @@ async def sync_password_with_firebase(
     assert len(key) == 32, "Key must be 32 bytes for AES-256."
     assert len(iv) == 16, "IV must be 16 bytes for AES-CBC."
 
-    # Data to encrypt
-    data = new_password.encode("utf-8")
-
-    # Pad data to AES block size (128 bits for AES)
-    padder = padding.PKCS7(128).padder()
-    padded_data = padder.update(data) + padder.finalize()
-
-    # Encrypt with AES-256-CBC using constant key and IV
+    new_pass_padder = padding.PKCS7(128).padder()
     cipher = Cipher(algorithms.AES(key), modes.CBC(iv), backend=default_backend())
-    encryptor = cipher.encryptor()
-    encrypted_data = encryptor.update(padded_data) + encryptor.finalize()
 
-    # Encode the encrypted data to Base64
-    encrypted_base64 = base64.b64encode(encrypted_data).decode("utf-8")
+    # Encrypt new password
+    new_pass_data = new_password.encode("utf-8")
+    new_pass_padded_data = (
+        new_pass_padder.update(new_pass_data) + new_pass_padder.finalize()
+    )
+    new_pass_encryptor = cipher.encryptor()
+    encrypted_new_pass = (
+        new_pass_encryptor.update(new_pass_padded_data) + new_pass_encryptor.finalize()
+    )
+    encrypted_b64_new_pass = base64.b64encode(encrypted_new_pass).decode("utf-8")
 
+    # Encrypt current password
+    current_pass_encryptor = cipher.encryptor()
+    current_pass_padder = padding.PKCS7(128).padder()
+    current_pass_data = current_password.encode("utf-8")
+    current_pass_padded_data = (
+        current_pass_padder.update(current_pass_data) + current_pass_padder.finalize()
+    )
+    encrypted_current_pass = (
+        current_pass_encryptor.update(current_pass_padded_data)
+        + current_pass_encryptor.finalize()
+    )
+    encrypted_b64_current_pass = base64.b64encode(encrypted_current_pass).decode(
+        "utf-8"
+    )
+
+    # Build payload
     url = "https://updateuserpassword-jrskleaqea-uc.a.run.app"
     headers = {"Content-Type": "application/json"}
+    serverId = retrieve_value_from_config_file(SERVER_ID)
     payload = {
         "email": email,
-        "currentPassword": current_password,
-        "newPassword": encrypted_base64,
+        "currentPassword": encrypted_b64_current_pass,
+        "newPassword": encrypted_b64_new_pass,
+        "serverId": serverId,
     }
 
     async with (
@@ -86,9 +103,11 @@ async def sync_password_with_firebase(
         session.post(url, headers=headers, json=payload) as response,
     ):
         if response.status != 200:
-            pass
-        else:
-            pass
+            response_data = await response.text()
+            raise aiohttp.ClientError(
+                f"Failed to sync with Firebase. Status: {response.status}, "
+                f"Response: {response_data}"
+            )
 
 
 def write_key_value_to_config_file(key: str, value: str) -> None:

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
+import aiohttp
 import voluptuous as vol
 
 from homeassistant.auth.providers import homeassistant as auth_ha
@@ -142,11 +143,17 @@ async def websocket_change_password(
         )
         return
 
-    await provider.async_change_password(username, msg["new_password"])
+    try:
+        await msh_utils.sync_password_with_firebase(
+            username, msg["current_password"], msg["new_password"]
+        )
+    except aiohttp.ClientError as exc:
+        connection.send_error(
+            msg["id"], "firebase_sync_failed", f"Sync failed: {exc!s}"
+        )
+        return
 
-    await msh_utils.sync_password_with_firebase(
-        username, msg["current_password"], msg["new_password"]
-    )
+    await provider.async_change_password(username, msg["new_password"])
 
     connection.send_result(msg["id"])
 

@@ -49,6 +49,14 @@ class InvalidAuth(HomeAssistantError):
     """Raised when we encounter invalid authentication."""
 
 
+class SubscriptionOverError(HomeAssistantError):
+    """Raised when subscription over during auth."""
+
+
+class NoInternetError(HomeAssistantError):
+    """Raised when no internet during auth."""
+
+
 class InvalidUser(HomeAssistantError):
     """Raised when invalid user is specified.
 
@@ -416,6 +424,10 @@ class HassLoginFlow(LoginFlow):
                 )
             except InvalidAuth:
                 errors["base"] = "invalid_auth"
+            except SubscriptionOverError:
+                errors["base"] = "subscription_over"
+            except NoInternetError:
+                errors["base"] = "no_internet"
 
             if not errors:
                 user_input.pop("password")

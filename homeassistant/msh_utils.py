@@ -10,7 +10,7 @@ from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import padding
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 
-from .components.config import config_core_secrets as ccs
+from . import config_core_secrets as ccs
 
 SERVER_ID = "server_id"
 
@@ -110,6 +110,49 @@ async def sync_password_with_firebase(
             )
 
 
+async def verify_user_subscription_for_this_server(username: str) -> Any:
+    """Verify user's subscription status for a specific server."""
+    from .auth.providers.homeassistant import (  # pylint: disable=import-outside-toplevel
+        InternalServerError,
+        NoInternetError,
+        ServerDeniedError,
+        SubscriptionOverError,
+    )
+
+    server_id = retrieve_value_from_config_file(SERVER_ID)
+
+    cloud_function_url = "https://checkSubscriptionByServer-jrskleaqea-uc.a.run.app"
+    payload = {"email": username, "serverId": server_id}
+
+    async with aiohttp.ClientSession() as session:
+        try:
+            async with session.post(cloud_function_url, json=payload) as response:
+                if response.status != HTTPStatus.OK:
+                    response_data = await response.json()
+                    error_key = response_data.get("error_key")
+
+                    # Handle specific error scenarios
+                    if error_key == "subscription_over":
+                        raise SubscriptionOverError("Subscription has expired.")
+                    if error_key == "server_denied":
+                        raise ServerDeniedError(
+                            "Server denied access or missing information."
+                        )
+                    if error_key == "server_crash":
+                        raise InternalServerError("Internal server error occurred.")
+                    raise ServerDeniedError(
+                        f"Unexpected error: {response_data.get('message', 'Unknown error')}"
+                    )
+
+                response_data = await response.json()
+                if response_data.get("success") is True:
+                    return response_data.get("subscriptionEndDate")
+                raise SubscriptionOverError("Success false")
+
+        except aiohttp.ClientError as e:
+            raise NoInternetError(f"Failed to connect to cloud function: {e!s}") from e
+
+
 def write_key_value_to_config_file(key: str, value: str) -> None:
     """Write a value to a file based on the key in the relative config directory.
 
@@ -129,9 +172,7 @@ def write_key_value_to_config_file(key: str, value: str) -> None:
     filename = f"data_{key.strip()}.txt"
 
     # Dynamically calculate the base path relative to this script
-    base_path = os.path.abspath(
-        os.path.join(os.path.dirname(__file__), "../../../config")
-    )
+    base_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../config"))
     file_path = os.path.join(base_path, filename)
 
     try:
@@ -162,9 +203,7 @@ def retrieve_value_from_config_file(key: str) -> str:
     filename = f"data_{key.strip()}.txt"
 
     # Dynamically calculate the base path relative to this script
-    base_path = os.path.abspath(
-        os.path.join(os.path.dirname(__file__), "../../../config")
-    )
+    base_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../config"))
     file_path = os.path.join(base_path, filename)
 
     try:

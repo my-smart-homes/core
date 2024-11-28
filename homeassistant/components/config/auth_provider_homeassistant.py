@@ -7,12 +7,11 @@ from typing import Any
 import aiohttp
 import voluptuous as vol
 
+from homeassistant import msh_utils
 from homeassistant.auth.providers import homeassistant as auth_ha
 from homeassistant.components import websocket_api
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.exceptions import Unauthorized
-
-from . import msh_utils
 
 
 @callback

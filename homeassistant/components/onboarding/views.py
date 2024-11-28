@@ -11,11 +11,11 @@ from aiohttp import web
 from aiohttp.web_exceptions import HTTPUnauthorized
 import voluptuous as vol
 
+from homeassistant import msh_utils
 from homeassistant.auth.const import GROUP_ID_ADMIN
 from homeassistant.auth.providers.homeassistant import HassAuthProvider
 from homeassistant.components import person
 from homeassistant.components.auth import indieauth
-from homeassistant.components.config import msh_utils
 from homeassistant.components.http import KEY_HASS, KEY_HASS_REFRESH_TOKEN_ID
 from homeassistant.components.http.data_validator import RequestDataValidator
 from homeassistant.components.http.view import HomeAssistantView

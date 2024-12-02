@@ -53,6 +53,7 @@ def async_setup(hass: HomeAssistant) -> bool:
     websocket_api.async_register_command(hass, config_entries_subscribe)
     websocket_api.async_register_command(hass, config_entries_progress)
     websocket_api.async_register_command(hass, ignore_config_flow)
+    websocket_api.async_register_command(hass, config_device_limit_get)
 
     return True
 
@@ -588,3 +589,22 @@ async def _async_matching_config_entries_json_fragments(
         )
         or (filter_is_not_helper and entry.domain not in integrations)
     ]
+
+
+@websocket_api.require_admin
+@websocket_api.websocket_command(
+    {
+        "type": "config_entries/get_device_limit",
+        "entry_id": str,
+    }
+)
+@websocket_api.async_response
+async def config_device_limit_get(
+    hass: HomeAssistant,
+    connection: websocket_api.ActiveConnection,
+    msg: dict[str, Any],
+) -> None:
+    """Get. Device Limit."""
+
+    result = {"device_count_limit": 20}
+    connection.send_result(msg["id"], result)

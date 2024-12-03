@@ -52,41 +52,9 @@ async def sync_password_with_firebase(
 ) -> None:
     """Sync password change with Firebase asynchronously."""
 
-    key = ccs.AES_ENC_KEY
-    iv = ccs.AES_ENC_IV
+    encrypted_b64_new_pass = encrypt(new_password)
 
-    # Check lengths (for verification purposes)
-    assert len(key) == 32, "Key must be 32 bytes for AES-256."
-    assert len(iv) == 16, "IV must be 16 bytes for AES-CBC."
-
-    new_pass_padder = padding.PKCS7(128).padder()
-    cipher = Cipher(algorithms.AES(key), modes.CBC(iv), backend=default_backend())
-
-    # Encrypt new password
-    new_pass_data = new_password.encode("utf-8")
-    new_pass_padded_data = (
-        new_pass_padder.update(new_pass_data) + new_pass_padder.finalize()
-    )
-    new_pass_encryptor = cipher.encryptor()
-    encrypted_new_pass = (
-        new_pass_encryptor.update(new_pass_padded_data) + new_pass_encryptor.finalize()
-    )
-    encrypted_b64_new_pass = base64.b64encode(encrypted_new_pass).decode("utf-8")
-
-    # Encrypt current password
-    current_pass_encryptor = cipher.encryptor()
-    current_pass_padder = padding.PKCS7(128).padder()
-    current_pass_data = current_password.encode("utf-8")
-    current_pass_padded_data = (
-        current_pass_padder.update(current_pass_data) + current_pass_padder.finalize()
-    )
-    encrypted_current_pass = (
-        current_pass_encryptor.update(current_pass_padded_data)
-        + current_pass_encryptor.finalize()
-    )
-    encrypted_b64_current_pass = base64.b64encode(encrypted_current_pass).decode(
-        "utf-8"
-    )
+    encrypted_b64_current_pass = encrypt(current_password)
 
     # Build payload
     url = "https://updateuserpassword-jrskleaqea-uc.a.run.app"
@@ -173,7 +141,10 @@ async def fetch_and_save_device_limit(email: str, server_id: str) -> None:
                     response_data = await response.json()
                     if response_data.get("success"):
                         device_limit = response_data.get("devicesLimit", 0)
-                        write_key_value_to_config_file(SYS_DLIM, str(device_limit))
+                        encryptedBase64DevLimit = encrypt(str(device_limit))
+                        write_key_value_to_config_file(
+                            SYS_DLIM, encryptedBase64DevLimit
+                        )
         except aiohttp.ClientError:
             pass
 
@@ -241,3 +212,57 @@ def retrieve_value_from_config_file(key: str) -> str:
             return file.read().strip()
     except FileNotFoundError:
         return ""
+
+
+def encrypt(data: str) -> str:
+    """Encrypts a string using AES-CBC with PKCS7 padding and returns a base64-encoded string.
+
+    Args:
+        data (str): The plaintext data to encrypt.
+
+    Returns:
+        str: The base64-encoded encrypted string.
+
+    """
+    key = ccs.AES_ENC_KEY
+    iv = ccs.AES_ENC_IV
+
+    assert len(key) == 32, "Key must be 32 bytes for AES-256."
+    assert len(iv) == 16, "IV must be 16 bytes for AES-CBC."
+
+    cipher = Cipher(algorithms.AES(key), modes.CBC(iv), backend=default_backend())
+    padder = padding.PKCS7(128).padder()
+
+    data_bytes = data.encode("utf-8")
+    padded_data = padder.update(data_bytes) + padder.finalize()
+    encryptor = cipher.encryptor()
+    encrypted_data = encryptor.update(padded_data) + encryptor.finalize()
+
+    return base64.b64encode(encrypted_data).decode("utf-8")
+
+
+def decrypt(encrypted_data: str) -> str:
+    """Decrypts a base64-encoded string encrypted using AES-CBC with PKCS7 padding.
+
+    Args:
+        encrypted_data (str): The base64-encoded encrypted string.
+
+    Returns:
+        str: The decrypted plaintext string.
+
+    """
+    key = ccs.AES_ENC_KEY
+    iv = ccs.AES_ENC_IV
+
+    assert len(key) == 32, "Key must be 32 bytes for AES-256."
+    assert len(iv) == 16, "IV must be 16 bytes for AES-CBC."
+
+    cipher = Cipher(algorithms.AES(key), modes.CBC(iv), backend=default_backend())
+    unpadder = padding.PKCS7(128).unpadder()
+
+    encrypted_bytes = base64.b64decode(encrypted_data)
+    decryptor = cipher.decryptor()
+    decrypted_padded_data = decryptor.update(encrypted_bytes) + decryptor.finalize()
+
+    decrypted_data = unpadder.update(decrypted_padded_data) + unpadder.finalize()
+    return decrypted_data.decode("utf-8")

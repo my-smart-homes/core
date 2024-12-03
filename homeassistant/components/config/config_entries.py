@@ -607,7 +607,10 @@ async def config_device_limit_get(
     """Get. Device Limit."""
 
     try:
-        dev_limit_str = msh_utils.retrieve_value_from_config_file(msh_utils.SYS_DLIM)
+        dev_limit_str_enc = msh_utils.retrieve_value_from_config_file(
+            msh_utils.SYS_DLIM
+        )
+        dev_limit_str = msh_utils.decrypt(dev_limit_str_enc)
         dev_limit = int(dev_limit_str)
     except (ValueError, TypeError):
         dev_limit = 20

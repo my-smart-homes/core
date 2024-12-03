@@ -10,7 +10,7 @@ from aiohttp import web
 import aiohttp.web_exceptions
 import voluptuous as vol
 
-from homeassistant import config_entries, data_entry_flow
+from homeassistant import config_entries, data_entry_flow, msh_utils
 from homeassistant.auth.permissions.const import CAT_CONFIG_ENTRIES, POLICY_EDIT
 from homeassistant.components import websocket_api
 from homeassistant.components.http import KEY_HASS, HomeAssistantView, require_admin
@@ -606,5 +606,11 @@ async def config_device_limit_get(
 ) -> None:
     """Get. Device Limit."""
 
-    result = {"device_count_limit": 20}
+    try:
+        dev_limit_str = msh_utils.retrieve_value_from_config_file(msh_utils.SYS_DLIM)
+        dev_limit = int(dev_limit_str)
+    except (ValueError, TypeError):
+        dev_limit = 20
+
+    result = {"device_count_limit": dev_limit}
     connection.send_result(msg["id"], result)

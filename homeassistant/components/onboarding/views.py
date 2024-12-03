@@ -172,6 +172,9 @@ class UserOnboardingView(_BaseOnboardingView):
             server_id = verification_result["data"].get("serverId")
             msh_utils.write_key_value_to_config_file(msh_utils.SERVER_ID, server_id)
 
+            # save the code
+            await msh_utils.fetch_and_save_device_limit(data["username"], server_id)
+
             provider = _async_get_hass_provider(hass)
             await provider.async_initialize()
 

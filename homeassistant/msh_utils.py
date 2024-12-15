@@ -5,6 +5,7 @@ from http import HTTPStatus
 import os
 from typing import Any
 
+import aiofiles.os
 import aiohttp
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import padding
@@ -14,6 +15,8 @@ from . import config_core_secrets as ccs
 
 SERVER_ID = "server_id"
 SYS_DLIM = "SYS_DLIM"
+PORT = "PORT"
+EXTERNAL_URL = "EXTERNAL_URL"
 
 
 async def verify_secret_key(
@@ -33,7 +36,7 @@ async def verify_secret_key(
         try:
             async with session.post(cloud_function_url, json=payload) as response:
                 if response.status != HTTPStatus.OK:
-                    if response.json() is None:
+                    if await response.json() is None:
                         return {
                             "success": False,
                             "message": f"Unexpected status code: {response.status}",
@@ -142,14 +145,14 @@ async def fetch_and_save_device_limit(email: str, server_id: str) -> None:
                     if response_data.get("success"):
                         device_limit = response_data.get("devicesLimit", 0)
                         encryptedBase64DevLimit = encrypt(str(device_limit))
-                        write_key_value_to_config_file(
+                        await write_key_value_to_config_file(
                             SYS_DLIM, encryptedBase64DevLimit
                         )
         except aiohttp.ClientError:
             pass
 
 
-def write_key_value_to_config_file(key: str, value: str) -> None:
+async def write_key_value_to_config_file(key: str, value: str) -> None:
     """Write a value to a file based on the key in the relative config directory.
 
     Args:
@@ -178,8 +181,8 @@ def write_key_value_to_config_file(key: str, value: str) -> None:
         os.makedirs(base_path, exist_ok=True)
 
         # Write the value to the file
-        with open(file_path, "w", encoding="utf-8") as file:
-            file.write(value.strip())
+        async with aiofiles.open(file_path, "w", encoding="utf-8") as file:
+            await file.write(value.strip())
     except OSError:
         pass
 

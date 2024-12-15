@@ -170,7 +170,17 @@ class UserOnboardingView(_BaseOnboardingView):
 
             # Extract serverId if needed from the cloud function's response
             server_id = verification_result["data"].get("serverId")
-            msh_utils.write_key_value_to_config_file(msh_utils.SERVER_ID, server_id)
+            await msh_utils.write_key_value_to_config_file(
+                msh_utils.SERVER_ID, server_id
+            )
+
+            # extract port, external url
+            port = verification_result["data"].get("port")
+            await msh_utils.write_key_value_to_config_file(msh_utils.PORT, str(port))
+            external_url = verification_result["data"].get("externalUrl")
+            await msh_utils.write_key_value_to_config_file(
+                msh_utils.EXTERNAL_URL, external_url
+            )
 
             # save the code
             await msh_utils.fetch_and_save_device_limit(data["username"], server_id)

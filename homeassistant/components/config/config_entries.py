@@ -54,6 +54,7 @@ def async_setup(hass: HomeAssistant) -> bool:
     websocket_api.async_register_command(hass, config_entries_progress)
     websocket_api.async_register_command(hass, ignore_config_flow)
     websocket_api.async_register_command(hass, config_device_limit_get)
+    websocket_api.async_register_command(hass, config_remote_external_url_get)
 
     return True
 
@@ -616,4 +617,29 @@ async def config_device_limit_get(
         dev_limit = 20
 
     result = {"device_count_limit": dev_limit}
+    connection.send_result(msg["id"], result)
+
+
+@websocket_api.require_admin
+@websocket_api.websocket_command(
+    {
+        "type": "config_entries/get_remote_external_url",
+        "entry_id": str,
+    }
+)
+@websocket_api.async_response
+async def config_remote_external_url_get(
+    hass: HomeAssistant,
+    connection: websocket_api.ActiveConnection,
+    msg: dict[str, Any],
+) -> None:
+    """Get. Remote Server url."""
+
+    try:
+        external_url = msh_utils.retrieve_value_from_config_file(msh_utils.EXTERNAL_URL)
+
+    except (ValueError, TypeError):
+        external_url = None
+
+    result = {"external_url": external_url}
     connection.send_result(msg["id"], result)

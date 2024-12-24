@@ -270,3 +270,28 @@ def decrypt(encrypted_data: str) -> str:
 
     decrypted_data = unpadder.update(decrypted_padded_data) + unpadder.finalize()
     return decrypted_data.decode("utf-8")
+
+
+async def add_external_url_into_confi_cors(external_url: str, config_path: str) -> None:
+    """Add external URL to the CORS configuration file.
+
+    Args:
+        external_url (str): The external URL to add to the configuration.
+        config_path (str): Path to the configuration file.
+
+    """
+    search_text = "http:\n  use_x_forwarded_for: true"
+    replace_text = f"""http:
+  cors_allowed_origins:
+    - {external_url}
+  use_x_forwarded_for: true"""
+
+    try:
+        async with aiofiles.open(config_path, encoding="utf-8") as file:
+            content = await file.read()
+        updated_content = content.replace(search_text, replace_text)
+        async with aiofiles.open(config_path, mode="w", encoding="utf-8") as file:
+            await file.write(updated_content)
+
+    except FileNotFoundError:
+        pass

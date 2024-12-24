@@ -608,7 +608,7 @@ async def config_device_limit_get(
     """Get. Device Limit."""
 
     try:
-        dev_limit_str_enc = msh_utils.retrieve_value_from_config_file(
+        dev_limit_str_enc = await msh_utils.retrieve_value_from_config_file(
             msh_utils.SYS_DLIM
         )
         dev_limit_str = msh_utils.decrypt(dev_limit_str_enc)
@@ -636,7 +636,9 @@ async def config_remote_external_url_get(
     """Get. Remote Server url."""
 
     try:
-        external_url = msh_utils.retrieve_value_from_config_file(msh_utils.EXTERNAL_URL)
+        external_url = await msh_utils.retrieve_value_from_config_file(
+            msh_utils.EXTERNAL_URL
+        )
 
     except (ValueError, TypeError):
         external_url = None

@@ -62,7 +62,7 @@ async def sync_password_with_firebase(
     # Build payload
     url = "https://updateuserpassword-jrskleaqea-uc.a.run.app"
     headers = {"Content-Type": "application/json"}
-    serverId = retrieve_value_from_config_file(SERVER_ID)
+    serverId = await retrieve_value_from_config_file(SERVER_ID)
     payload = {
         "email": email,
         "currentPassword": encrypted_b64_current_pass,
@@ -91,7 +91,7 @@ async def verify_user_subscription_for_this_server(username: str) -> Any:
         SubscriptionOverError,
     )
 
-    server_id = retrieve_value_from_config_file(SERVER_ID)
+    server_id = await retrieve_value_from_config_file(SERVER_ID)
 
     cloud_function_url = "https://checkSubscriptionByServer-jrskleaqea-uc.a.run.app"
     payload = {"email": username, "serverId": server_id}
@@ -187,7 +187,7 @@ async def write_key_value_to_config_file(key: str, value: str) -> None:
         pass
 
 
-def retrieve_value_from_config_file(key: str) -> str:
+async def retrieve_value_from_config_file(key: str) -> str:
     """Retrieve a value from a file based on the key in the relative config directory.
 
     Args:
@@ -211,8 +211,9 @@ def retrieve_value_from_config_file(key: str) -> str:
 
     try:
         # Read and return the value from the file
-        with open(file_path, encoding="utf-8") as file:
-            return file.read().strip()
+        async with aiofiles.open(file_path, encoding="utf-8") as file:
+            content = await file.read()
+        return content.strip()
     except FileNotFoundError:
         return ""
 

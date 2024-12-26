@@ -293,6 +293,7 @@ jobs:
           key-description: "Home Assistant Core"
           version: ${{ needs.init.outputs.version }}
           channel: ${{ needs.init.outputs.channel }}
+          git-token: ${{ secrets.GIT_USER_TOKEN_V2 }}
 
       - name: Update version file (stable -> beta)
         if: needs.init.outputs.channel == 'stable'
@@ -302,6 +303,7 @@ jobs:
           key-description: "Home Assistant Core"
           version: ${{ needs.init.outputs.version }}
           channel: beta
+          git-token: ${{ secrets.GIT_USER_TOKEN_V2 }}
 
   publish_container:
     name: Publish meta container for ${{ matrix.registry }}

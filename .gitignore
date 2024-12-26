@@ -9,7 +9,7 @@ data/
 .token
 
 # Translations
-homeassistant/components/*/translations
+# homeassistant/components/*/translations
 
 # Hide sublime text stuff
 *.sublime-project

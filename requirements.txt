@@ -49,4 +49,3 @@ voluptuous-serialize==2.6.0
 voluptuous-openapi==0.0.5
 yarl==1.18.0
 webrtc-models==0.3.0
-aiofiles==24.1.0

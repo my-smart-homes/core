@@ -1,0 +1,28 @@
+{
+    "config": {
+        "abort": {
+            "already_configured": "Device is already configured"
+        },
+        "error": {
+            "cannot_connect": "Failed to connect",
+            "invalid_auth": "Invalid authentication",
+            "unknown": "Unexpected error"
+        },
+        "step": {
+            "user": {
+                "data": {
+                    "counter_id": "Counter id",
+                    "password": "Password",
+                    "username": "Username"
+                }
+            }
+        }
+    },
+    "entity": {
+        "sensor": {
+            "water_usage_yesterday": {
+                "name": "Water usage yesterday"
+            }
+        }
+    }
+}

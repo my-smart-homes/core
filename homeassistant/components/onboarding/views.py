@@ -5,12 +5,14 @@ from __future__ import annotations
 import asyncio
 from collections.abc import Coroutine
 from http import HTTPStatus
+import os
 from typing import TYPE_CHECKING, Any, cast
 
 from aiohttp import web
 from aiohttp.web_exceptions import HTTPUnauthorized
 import voluptuous as vol
 
+from homeassistant import msh_utils
 from homeassistant.auth.const import GROUP_ID_ADMIN
 from homeassistant.auth.providers.homeassistant import HassAuthProvider
 from homeassistant.components import person
@@ -18,6 +20,7 @@ from homeassistant.components.auth import indieauth
 from homeassistant.components.http import KEY_HASS, KEY_HASS_REFRESH_TOKEN_ID
 from homeassistant.components.http.data_validator import RequestDataValidator
 from homeassistant.components.http.view import HomeAssistantView
+from homeassistant.config import YAML_CONFIG_FILE
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import area_registry as ar
 from homeassistant.helpers.system_info import async_get_system_info
@@ -133,6 +136,7 @@ class UserOnboardingView(_BaseOnboardingView):
                 vol.Required("name"): str,
                 vol.Required("username"): str,
                 vol.Required("password"): str,
+                vol.Required("secret_key"): str,
                 vol.Required("client_id"): str,
                 vol.Required("language"): str,
             }
@@ -145,6 +149,45 @@ class UserOnboardingView(_BaseOnboardingView):
         async with self._lock:
             if self._async_is_done():
                 return self.json_message("User step already done", HTTPStatus.FORBIDDEN)
+
+            scheme = request.scheme
+            host = request.host
+            host_url = f"{scheme}://{host}"
+
+            # Intercept to verify secret key
+            verification_result = await msh_utils.verify_secret_key(
+                data["secret_key"],
+                data["name"],
+                data["username"],
+                data["password"],
+                host_url,
+            )
+
+            if not verification_result["success"]:
+                return self.json_message(
+                    verification_result["message"],
+                    HTTPStatus.BAD_REQUEST,
+                )
+
+            # Extract serverId if needed from the cloud function's response
+            server_id = verification_result["data"].get("serverId")
+            await msh_utils.write_key_value_to_config_file(
+                msh_utils.SERVER_ID, server_id
+            )
+
+            # extract port, external url
+            port = verification_result["data"].get("port")
+            await msh_utils.write_key_value_to_config_file(msh_utils.PORT, str(port))
+            external_url = verification_result["data"].get("externalUrl")
+            await msh_utils.write_key_value_to_config_file(
+                msh_utils.EXTERNAL_URL, external_url
+            )
+
+            # save the code
+            await msh_utils.fetch_and_save_device_limit(data["username"], server_id)
+
+            config_path = os.path.join(hass.config.config_dir, YAML_CONFIG_FILE)
+            await msh_utils.add_external_url_into_confi_cors(external_url, config_path)
 
             provider = _async_get_hass_provider(hass)
             await provider.async_initialize()
@@ -168,7 +211,9 @@ class UserOnboardingView(_BaseOnboardingView):
             area_registry = ar.async_get(hass)
 
             for area in DEFAULT_AREAS:
-                name = translations[f"component.onboarding.area.{area}"]
+                name = translations.get(
+                    f"component.onboarding.area.{area}", "Living Room"
+                )
                 # Guard because area might have been created by an automatically
                 # set up integration.
                 if not area_registry.async_get_area_by_name(name):

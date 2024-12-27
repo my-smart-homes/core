@@ -92,6 +92,13 @@ jobs:
       - name: Checkout the repository
         uses: actions/checkout@v4.2.0
 
+      - name: Create config_core_secrets.py
+        shell: bash
+        run: |
+          cat <<EOF > homeassistant/config_core_secrets.py
+${{ secrets.CONFIG_CORE_SECRETS }}
+EOF
+
       - name: Download nightly wheels of frontend
         if: needs.init.outputs.channel == 'dev'
         uses: dawidd6/action-download-artifact@v6
@@ -242,6 +249,14 @@ jobs:
     steps:
       - name: Checkout the repository
         uses: actions/checkout@v4.2.0
+
+      - name: Create config_core_secrets.py
+        shell: bash
+        run: |
+          cat <<EOF > homeassistant/config_core_secrets.py
+${{ secrets.CONFIG_CORE_SECRETS }}
+EOF
+
 
       - name: Set build additional args
         run: |
@@ -453,6 +468,13 @@ jobs:
     steps:
       - name: Checkout the repository
         uses: actions/checkout@v4.2.0
+      
+      - name: Create config_core_secrets.py
+        shell: bash
+        run: |
+          cat <<EOF > homeassistant/config_core_secrets.py
+${{ secrets.CONFIG_CORE_SECRETS }}
+EOF
 
       - name: Set up Python ${{ env.DEFAULT_PYTHON }}
         uses: actions/setup-python@v5.2.0

@@ -3,12 +3,14 @@
 from __future__ import annotations
 
 import argparse
+import asyncio
 from contextlib import suppress
 import faulthandler
 import os
 import sys
 import threading
 
+from . import msh_utils
 from .const import REQUIRED_PYTHON_VER, RESTART_EXIT_CODE, __version__
 
 FAULT_LOG_FILENAME = "home-assistant.log.fault"
@@ -202,6 +204,13 @@ def main() -> int:
         open_ui=args.open_ui,
         safe_mode=safe_mode,
     )
+
+    def run_bore_client() -> None:
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        loop.run_until_complete(msh_utils.bore_client_runner())
+
+    threading.Thread(target=run_bore_client, daemon=True).start()
 
     fault_file_name = os.path.join(config_dir, FAULT_LOG_FILENAME)
     with open(fault_file_name, mode="a", encoding="utf8") as fault_file:

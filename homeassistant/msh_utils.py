@@ -1,5 +1,6 @@
 """MSH patch funcs firebase funcs and small utils funcs."""
 
+import asyncio
 import base64
 from http import HTTPStatus
 import os
@@ -295,3 +296,49 @@ async def add_external_url_into_confi_cors(external_url: str, config_path: str) 
 
     except FileNotFoundError:
         pass
+
+
+async def bore_client_runner() -> None:
+    """Run the bore client."""
+    while True:
+        try:
+            # Read URL and port from the respective files
+            external_url = await retrieve_value_from_config_file(EXTERNAL_URL)
+            port = await retrieve_value_from_config_file(PORT)
+
+            # Ensure both URL and port are available
+            if external_url and port:
+                # Construct the command
+                command = [
+                    "bore",
+                    "local",
+                    "8123",
+                    "--to",
+                    external_url,
+                    "--port",
+                    port,
+                ]
+
+                # Run the command asynchronously
+                print("Starting connection...")  # noqa: T201
+                process = await asyncio.create_subprocess_exec(
+                    *command,
+                    stdout=asyncio.subprocess.PIPE,
+                    stderr=asyncio.subprocess.PIPE,
+                )
+
+                # Wait for the process to complete
+                stdout, stderr = await process.communicate()
+
+                if process.returncode != 0:
+                    print(f"Command failed with return code {process.returncode}")  # noqa: T201
+                    print(f"stderr: {stderr.decode()}")  # noqa: T201
+            else:
+                print("URL or port information is missing. Please check the files.")  # noqa: T201
+        except asyncio.CancelledError:
+            print("Terminating the process...")  # noqa: T201
+            break
+
+        # Delay before retrying
+        print("Rechecking in 8 seconds...")  # noqa: T201
+        await asyncio.sleep(8)  # Adjust delay as necessary

@@ -63,21 +63,21 @@ RUN \
 RUN \
     set -x \
     && if [ "${BUILD_ARCH}" = "amd64" ]; then \
-        BORE_URL="https://github.com/ekzhang/bore/releases/download/v0.5.2/bore-v0.5.2-x86_64-unknown-linux-musl.tar.gz"; \
+        BORE_URL="https://github.com/fatedier/frp/releases/download/v0.61.1/frp_0.61.1_linux_amd64.tar.gz"; \
     elif [ "${BUILD_ARCH}" = "i386" ]; then \
-        BORE_URL="https://github.com/ekzhang/bore/releases/download/v0.5.2/bore-v0.5.2-i686-unknown-linux-musl.tar.gz"; \
+        BORE_URL="https://github.com/fatedier/frp/releases/download/v0.61.1/frp_0.61.1_linux_amd64.tar.gz"; \
     elif [ "${BUILD_ARCH}" = "aarch64" ]; then \
-        BORE_URL="https://github.com/ekzhang/bore/releases/download/v0.5.2/bore-v0.5.2-aarch64-unknown-linux-musl.tar.gz"; \
+        BORE_URL="https://github.com/fatedier/frp/releases/download/v0.61.1/frp_0.61.1_linux_arm64.tar.gz"; \
     elif [ "${BUILD_ARCH}" = "armv7" ]; then \
-        BORE_URL="https://github.com/ekzhang/bore/releases/download/v0.5.2/bore-v0.5.2-armv7-unknown-linux-musleabihf.tar.gz"; \
+        BORE_URL="https://github.com/fatedier/frp/releases/download/v0.61.1/frp_0.61.1_linux_arm.tar.gz"; \
     elif [ "${BUILD_ARCH}" = "armhf" ]; then \
-        BORE_URL="https://github.com/ekzhang/bore/releases/download/v0.5.2/bore-v0.5.2-arm-unknown-linux-musleabi.tar.gz"; \
+        BORE_URL="https://github.com/fatedier/frp/releases/download/v0.61.1/frp_0.61.1_linux_arm_hf.tar.gz"; \
     else \
         echo "Unsupported architecture: ${BUILD_ARCH}"; exit 1; \
     fi \
     && curl -L $BORE_URL --output /tmp/bore.tar.gz \
-    && tar -xzf /tmp/bore.tar.gz -C /usr/local/bin/ bore \
-    && chmod +x /usr/local/bin/bore \
+    && tar -xzf /tmp/bore.tar.gz -C /usr/local/bin/ frpc \
+    && chmod +x /usr/local/bin/frpc \
     && rm /tmp/bore.tar.gz
 
 WORKDIR /config

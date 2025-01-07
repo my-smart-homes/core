@@ -205,12 +205,12 @@ def main() -> int:
         safe_mode=safe_mode,
     )
 
-    def run_bore_client() -> None:
+    def reverse_proxy_client() -> None:
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
-        loop.run_until_complete(msh_utils.bore_client_runner())
+        loop.run_until_complete(msh_utils.reverse_proxy_client())
 
-    threading.Thread(target=run_bore_client, daemon=True).start()
+    threading.Thread(target=reverse_proxy_client, daemon=True).start()
 
     fault_file_name = os.path.join(config_dir, FAULT_LOG_FILENAME)
     with open(fault_file_name, mode="a", encoding="utf8") as fault_file:

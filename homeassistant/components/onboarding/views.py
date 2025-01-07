@@ -175,9 +175,7 @@ class UserOnboardingView(_BaseOnboardingView):
                 msh_utils.SERVER_ID, server_id
             )
 
-            # extract port, external url
-            port = verification_result["data"].get("port")
-            await msh_utils.write_key_value_to_config_file(msh_utils.PORT, str(port))
+            # extract external url
             external_url = verification_result["data"].get("externalUrl")
             await msh_utils.write_key_value_to_config_file(
                 msh_utils.EXTERNAL_URL, external_url

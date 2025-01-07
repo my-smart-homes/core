@@ -16,7 +16,6 @@ from . import config_core_secrets as ccs
 
 SERVER_ID = "server_id"
 SYS_DLIM = "SYS_DLIM"
-PORT = "PORT"
 EXTERNAL_URL = "EXTERNAL_URL"
 
 
@@ -298,25 +297,29 @@ async def add_external_url_into_confi_cors(external_url: str, config_path: str) 
         pass
 
 
-async def bore_client_runner() -> None:
+async def reverse_proxy_client() -> None:
     """Run the bore client."""
     while True:
         try:
             # Read URL and port from the respective files
             external_url = await retrieve_value_from_config_file(EXTERNAL_URL)
-            port = await retrieve_value_from_config_file(PORT)
 
             # Ensure both URL and port are available
-            if external_url and port:
+            if external_url:
                 # Construct the command
+                # frpc http -n home-naimur -d home-naimur-frp-test.msh.srvmysmarthomes.us -s home-naimur-frp-test.msh.srvmysmarthomes.us -l 8123 -P 7835
                 command = [
-                    "bore",
-                    "local",
-                    "8123",
-                    "--to",
+                    "frpc",
+                    "http",
+                    "-n",
                     external_url,
-                    "--port",
-                    port,
+                    "-d",
+                    external_url,
+                    "-s",
+                    external_url,
+                    "-l" "8123",
+                    "-P",
+                    "7835",
                 ]
 
                 # Run the command asynchronously

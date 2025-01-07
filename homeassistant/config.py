@@ -419,7 +419,8 @@ def _write_default_config(config_dir: str) -> bool:
 http:
   use_x_forwarded_for: true
   trusted_proxies:
-    - ::1
+    - 0.0.0.0/0
+    - ::/0
 
 """)
 

@@ -5,7 +5,6 @@ from __future__ import annotations
 import asyncio
 from collections.abc import Coroutine
 from http import HTTPStatus
-import os
 from typing import TYPE_CHECKING, Any, cast
 
 from aiohttp import web
@@ -20,7 +19,6 @@ from homeassistant.components.auth import indieauth
 from homeassistant.components.http import KEY_HASS, KEY_HASS_REFRESH_TOKEN_ID
 from homeassistant.components.http.data_validator import RequestDataValidator
 from homeassistant.components.http.view import HomeAssistantView
-from homeassistant.config import YAML_CONFIG_FILE
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import area_registry as ar
 from homeassistant.helpers.system_info import async_get_system_info
@@ -184,8 +182,8 @@ class UserOnboardingView(_BaseOnboardingView):
             # save the code
             await msh_utils.fetch_and_save_device_limit(data["username"], server_id)
 
-            config_path = os.path.join(hass.config.config_dir, YAML_CONFIG_FILE)
-            await msh_utils.add_external_url_into_confi_cors(external_url, config_path)
+            # config_path = os.path.join(hass.config.config_dir, YAML_CONFIG_FILE)
+            # await msh_utils.add_external_url_into_confi_cors(external_url, config_path)
 
             provider = _async_get_hass_provider(hass)
             await provider.async_initialize()

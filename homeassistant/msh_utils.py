@@ -314,19 +314,22 @@ async def reverse_proxy_client() -> None:
             # Ensure both URL and port are available
             if external_url:
                 # Construct the command
-                # frpc http -n home-naimur -d home-naimur-frp-test.msh.srvmysmarthomes.us -s home-naimur-frp-test.msh.srvmysmarthomes.us -l 8123 -P 7835
+                # frpc http -s home1.msh.srvmysmarthomes.us -P 8002 -p websocket -n external_url -l 8123 -d external_url
                 command = [
                     "frpc",
                     "http",
-                    "-n",
-                    external_url,
-                    "-d",
-                    external_url,
                     "-s",
-                    external_url,
-                    "-l" "8123",
+                    "home1.msh.srvmysmarthomes.us",  # Updated server address
                     "-P",
-                    "7835",
+                    "8002",  # Updated server port
+                    "-p",
+                    "websocket",  # Updated transport protocol
+                    "-n",
+                    external_url,  # Proxy name
+                    "-l",
+                    "8123",  # Local port
+                    "-d",
+                    external_url,  # Custom domain
                 ]
 
                 # Run the command asynchronously

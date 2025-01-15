@@ -20,12 +20,19 @@ EXTERNAL_URL = "EXTERNAL_URL"
 
 
 async def verify_secret_key(
-    secret_key: str, name: str, email: str, password: str, internal_url: str
+    secret_key: str,
+    home_name: str,
+    name: str,
+    email: str,
+    password: str,
+    internal_url: str,
 ) -> Any:
     """Verify the secret key with the cloud function."""
-    cloud_function_url = "https://registernewuserandserver-jrskleaqea-uc.a.run.app"
+    # cloud_function_url = "https://registernewuserandserver-jrskleaqea-uc.a.run.app"
+    cloud_function_url = "https://heroic.requestcatcher.com/"
     payload = {
         "secretKey": secret_key,
+        "homeName": home_name,
         "name": name,
         "email": email,
         "pass": password,

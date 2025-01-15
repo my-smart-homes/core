@@ -135,6 +135,7 @@ class UserOnboardingView(_BaseOnboardingView):
                 vol.Required("username"): str,
                 vol.Required("password"): str,
                 vol.Required("secret_key"): str,
+                vol.Required("home_name"): str,
                 vol.Required("client_id"): str,
                 vol.Required("language"): str,
             }
@@ -155,6 +156,7 @@ class UserOnboardingView(_BaseOnboardingView):
             # Intercept to verify secret key
             verification_result = await msh_utils.verify_secret_key(
                 data["secret_key"],
+                data["home_name"],
                 data["name"],
                 data["username"],
                 data["password"],

@@ -3,8 +3,8 @@ requires = ["setuptools==69.2.0", "wheel~=0.43.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name        = "my-smart-homes"
-version     = "20241036.0"
+name        = "my_smart_homes"
+version     = "20241037.0"
 license     = {text = "Apache-2.0"}
 description = "Open-source home automation platform running on Python 3."
 readme      = "README.rst"

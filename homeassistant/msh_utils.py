@@ -28,8 +28,8 @@ async def verify_secret_key(
     internal_url: str,
 ) -> Any:
     """Verify the secret key with the cloud function."""
-    # cloud_function_url = "https://registernewuserandserver-jrskleaqea-uc.a.run.app"
-    cloud_function_url = "https://heroic.requestcatcher.com/"
+    cloud_function_url = "https://registernewuserandserver-jrskleaqea-uc.a.run.app"
+    # cloud_function_url = "https://heroic.requestcatcher.com/"
     payload = {
         "secretKey": secret_key,
         "homeName": home_name,
